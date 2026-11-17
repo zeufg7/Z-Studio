@@ -19,7 +19,7 @@ jobs:
             os: windows-latest
             artifact: ZStudio-Windows-x64
           - name: macOS (Intel + Apple Silicon)
-            os: macos-14
+            os: macos-latest
             artifact: ZStudio-macOS-universal
 
     steps:
