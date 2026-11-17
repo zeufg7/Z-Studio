@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 
 //==============================================================================
-// Paleta e LookAndFeel do Zeufg Studio (tema escuro, inspirado no Logic/Cubase)
+// Paleta e LookAndFeel do Z-Studio (tema escuro, inspirado no Logic/Cubase)
 namespace Theme
 {
     inline const juce::Colour background   { 0xff1b1c1f };

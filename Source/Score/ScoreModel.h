@@ -1,6 +1,6 @@
 #pragma once
 
-// Motor de partitura do Zeufg Studio.
+// Motor de partitura do Z-Studio.
 // Converte MIDI tocado de forma humana numa partitura limpa, SEM alterar o MIDI:
 // toda a "limpeza" é apenas uma interpretação visual controlada pelos ajustes abaixo.
 // Este módulo usa só a biblioteca padrão de C++ (testável fora do app).

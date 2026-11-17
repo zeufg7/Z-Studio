@@ -6,7 +6,7 @@ if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
     set (CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS version")
 endif()
 
-project (ZeufgStudio VERSION 0.1.0 LANGUAGES C CXX)
+project (ZStudio VERSION 0.2.0 LANGUAGES C CXX)
 
 set (CMAKE_CXX_STANDARD 20)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -38,21 +38,21 @@ set (SCORE_SOURCES
     Source/Score/MusicXml.cpp
     Source/Score/ScoreRenderer.cpp)
 
-juce_add_gui_app (ZeufgStudio
-    PRODUCT_NAME "Zeufg Studio"
+juce_add_gui_app (ZStudio
+    PRODUCT_NAME "Z-Studio"
     COMPANY_NAME "Eliseu F. Guedes"
-    BUNDLE_ID "com.eliseufguedes.zeufgstudio"
+    BUNDLE_ID "com.eliseufguedes.zstudio"
     VERSION ${PROJECT_VERSION}
     MICROPHONE_PERMISSION_ENABLED TRUE
-    MICROPHONE_PERMISSION_TEXT "O Zeufg Studio usa a entrada de áudio para gravar."
+    MICROPHONE_PERMISSION_TEXT "O Z-Studio usa a entrada de áudio para gravar."
     NEEDS_CURL FALSE
     NEEDS_WEB_BROWSER FALSE
     PLUGINHOST_AU TRUE
     DOCUMENT_EXTENSIONS zstudio)
 
-juce_generate_juce_header (ZeufgStudio)
+juce_generate_juce_header (ZStudio)
 
-target_sources (ZeufgStudio PRIVATE
+target_sources (ZStudio PRIVATE
     Source/Main.cpp
     Source/MainComponent.cpp
     Source/ArrangeView.cpp
@@ -60,15 +60,15 @@ target_sources (ZeufgStudio PRIVATE
     ${SCORE_SOURCES})
 
 # Fontes do Verovio embutidas (extraídas na primeira execução)
-juce_add_binary_data (ZeufgStudioData
+juce_add_binary_data (ZStudioData
     HEADER_NAME ZeufgBinaryData.h
     NAMESPACE ZeufgData
     SOURCES "${VRV_DATA_ZIP}")
-add_dependencies (ZeufgStudioData verovio_data)
+add_dependencies (ZStudioData verovio_data)
 
-target_compile_definitions (ZeufgStudio PRIVATE
-    JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:ZeufgStudio,JUCE_PRODUCT_NAME>"
-    JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:ZeufgStudio,JUCE_VERSION>"
+target_compile_definitions (ZStudio PRIVATE
+    JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:ZStudio,JUCE_PRODUCT_NAME>"
+    JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:ZStudio,JUCE_VERSION>"
     JUCE_PLUGINHOST_VST3=1
     JUCE_PLUGINHOST_AU=1
     $<$<PLATFORM_ID:Linux>:JUCE_PLUGINHOST_LADSPA=1>
@@ -81,7 +81,7 @@ target_compile_definitions (ZeufgStudio PRIVATE
     JUCE_USE_MP3AUDIOFORMAT=1
     TRACKTION_ENABLE_TIMESTRETCH_SOUNDTOUCH=1)
 
-target_link_libraries (ZeufgStudio PRIVATE
+target_link_libraries (ZStudio PRIVATE
     tracktion::tracktion_core
     tracktion::tracktion_engine
     tracktion::tracktion_graph
@@ -89,23 +89,23 @@ target_link_libraries (ZeufgStudio PRIVATE
     juce::juce_audio_processors
     juce::juce_audio_utils
     verovio_static
-    ZeufgStudioData
+    ZStudioData
     juce::juce_recommended_config_flags)
 
-set_target_properties (ZeufgStudio PROPERTIES
+set_target_properties (ZStudio PROPERTIES
     C_VISIBILITY_PRESET hidden
     CXX_VISIBILITY_PRESET hidden)
 
 if (APPLE)
-    target_compile_options (ZeufgStudio PRIVATE "-fno-aligned-allocation")
+    target_compile_options (ZStudio PRIVATE "-fno-aligned-allocation")
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    target_compile_options (ZeufgStudio PRIVATE "-Wno-unknown-pragmas")
+    target_compile_options (ZStudio PRIVATE "-Wno-unknown-pragmas")
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_link_libraries (ZeufgStudio PRIVATE "-latomic")
+    target_link_libraries (ZStudio PRIVATE "-latomic")
 endif()
 
 #==============================================================================

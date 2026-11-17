@@ -251,7 +251,7 @@ public:
 
         g.setColour (Theme::accent);
         g.setFont (juce::FontOptions (16.0f, juce::Font::bold));
-        g.drawText ("ZEUFG STUDIO", getLocalBounds().removeFromRight (150).reduced (12, 0), juce::Justification::centredRight);
+        g.drawText ("Z-STUDIO", getLocalBounds().removeFromRight (150).reduced (12, 0), juce::Justification::centredRight);
     }
 
     void resized() override

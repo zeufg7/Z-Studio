@@ -651,7 +651,7 @@ String ScoreView::getResourcePath()
 {
     // As fontes do Verovio vão embutidas no app e são extraídas uma vez
     auto dir = File::getSpecialLocation (File::userApplicationDataDirectory)
-                   .getChildFile ("Zeufg Studio").getChildFile ("verovio-data")
+                   .getChildFile ("Z-Studio").getChildFile ("verovio-data")
                    .getChildFile (String (ZeufgData::namedResourceListSize > 0 ? ZeufgData::namedResourceList[0] : "x")
                                   + "-" + String (JUCE_APPLICATION_VERSION_STRING));
 

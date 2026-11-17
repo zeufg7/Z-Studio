@@ -31,7 +31,7 @@ namespace ZS
     inline juce::File getDefaultProjectsFolder()
     {
         auto d = juce::File::getSpecialLocation (juce::File::userDocumentsDirectory)
-                    .getChildFile ("Zeufg Studio").getChildFile ("Projetos");
+                    .getChildFile ("Z-Studio").getChildFile ("Projetos");
         d.createDirectory();
         return d;
     }
@@ -247,7 +247,7 @@ namespace PluginMenus
         }
 
         menu.addSectionHeader (instruments ? "Instrumentos" : "Efeitos");
-        menu.addSubMenu ("Zeufg Studio (internos)", builtInMenu);
+        menu.addSubMenu ("Z-Studio (internos)", builtInMenu);
 
         // Plugins escaneados, agrupados por fabricante
         auto& known = edit.engine.getPluginManager().knownPluginList;

@@ -34,10 +34,10 @@ public:
 };
 
 //==============================================================================
-class ZeufgStudioApplication : public juce::JUCEApplication
+class ZStudioApplication : public juce::JUCEApplication
 {
 public:
-    ZeufgStudioApplication() = default;
+    ZStudioApplication() = default;
 
     const juce::String getApplicationName() override       { return JUCE_APPLICATION_NAME_STRING; }
     const juce::String getApplicationVersion() override    { return JUCE_APPLICATION_VERSION_STRING; }
@@ -47,7 +47,7 @@ public:
     {
         juce::LookAndFeel::setDefaultLookAndFeel (&lookAndFeel);
 
-        engine = std::make_unique<te::Engine> ("Zeufg Studio", std::make_unique<ZeufgUIBehaviour>(), nullptr);
+        engine = std::make_unique<te::Engine> ("Z-Studio", std::make_unique<ZeufgUIBehaviour>(), nullptr);
         mainWindow = std::make_unique<MainWindow> (*engine, *this);
 
         openFromCommandLine (commandLine);
@@ -99,7 +99,7 @@ private:
     {
     public:
         MainWindow (te::Engine& engine, juce::JUCEApplication& a)
-            : DocumentWindow ("Zeufg Studio", Theme::background, DocumentWindow::allButtons), app (a)
+            : DocumentWindow ("Z-Studio", Theme::background, DocumentWindow::allButtons), app (a)
         {
             setUsingNativeTitleBar (true);
 
@@ -150,4 +150,4 @@ private:
 };
 
 //==============================================================================
-START_JUCE_APPLICATION (ZeufgStudioApplication)
+START_JUCE_APPLICATION (ZStudioApplication)

@@ -175,7 +175,7 @@ std::string toMusicXML (const Score& sc)
         x << "  <work><work-title>" << esc (sc.title) << "</work-title></work>\n";
 
     x << "  <identification>\n"
-      << "    <encoding><software>Zeufg Studio</software></encoding>\n"
+      << "    <encoding><software>Z-Studio</software></encoding>\n"
       << "  </identification>\n";
 
     x << "  <part-list>\n";

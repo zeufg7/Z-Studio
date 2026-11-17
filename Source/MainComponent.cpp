@@ -465,7 +465,7 @@ void MainComponent::updateTitle()
 
     auto title = currentFile.getFileNameWithoutExtension()
                  + (edit->hasChangedSinceSaved() ? " *" : "")
-                 + "  -  Zeufg Studio";
+                 + "  -  Z-Studio";
 
     if (title != lastTitle)
     {
@@ -585,7 +585,7 @@ void MainComponent::getCommandInfo (CommandID id, ApplicationCommandInfo& info)
 
         case cmdAudioSettings: info.setInfo ("Áudio e MIDI..."_t, {}, "Opções"_t, 0);         info.addDefaultKeypress (',', cmd); break;
         case cmdPluginManager: info.setInfo ("Gerenciar plugins...", {}, "Opções"_t, 0);    break;
-        case cmdAbout:         info.setInfo ("Sobre o Zeufg Studio", {}, "Ajuda", 0);     break;
+        case cmdAbout:         info.setInfo ("Sobre o Z-Studio", {}, "Ajuda", 0);     break;
         default: break;
     }
 }
@@ -639,8 +639,8 @@ bool MainComponent::perform (const InvocationInfo& info)
         case cmdAudioSettings: showAudioSettings(); break;
         case cmdPluginManager: showPluginManager(); break;
         case cmdAbout:
-            AlertWindow::showMessageBoxAsync (MessageBoxIconType::InfoIcon, "Zeufg Studio",
-                                              "Zeufg Studio " + String (JUCE_APPLICATION_VERSION_STRING) + "\n"
+            AlertWindow::showMessageBoxAsync (MessageBoxIconType::InfoIcon, "Z-Studio",
+                                              "Z-Studio " + String (JUCE_APPLICATION_VERSION_STRING) + "\n"
                                               "por Eliseu F. Guedes\n\n"
                                               "Motor de áudio: Tracktion Engine + JUCE (licença AGPLv3)"_t);
             break;

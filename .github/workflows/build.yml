@@ -17,10 +17,10 @@ jobs:
         include:
           - name: Windows (x64)
             os: windows-latest
-            artifact: ZeufgStudio-Windows-x64
+            artifact: ZStudio-Windows-x64
           - name: macOS (Intel + Apple Silicon)
             os: macos-14
-            artifact: ZeufgStudio-macOS-universal
+            artifact: ZStudio-macOS-universal
 
     steps:
       - name: Baixar código (com submódulos)
@@ -54,15 +54,15 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist | Out-Null
-          Copy-Item "build/ZeufgStudio_artefacts/Release/Zeufg Studio.exe" dist/
+          Copy-Item "build/ZStudio_artefacts/Release/Z-Studio.exe" dist/
           Copy-Item README.md, LICENSE dist/
           Compress-Archive -Path dist/* -DestinationPath "${{ matrix.artifact }}.zip"
 
       - name: Empacotar (macOS)
         if: runner.os == 'macOS'
         run: |
-          APP="build/ZeufgStudio_artefacts/Release/Zeufg Studio.app"
-          lipo -info "$APP/Contents/MacOS/Zeufg Studio"
+          APP="build/ZStudio_artefacts/Release/Z-Studio.app"
+          lipo -info "$APP/Contents/MacOS/Z-Studio"
           codesign --force --deep --sign - "$APP"
           mkdir -p dist
           cp -R "$APP" dist/

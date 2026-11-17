@@ -1,4 +1,4 @@
-# Zeufg Studio
+# Z-Studio
 
 DAW (estação de trabalho de áudio digital) para **Windows e macOS**, inspirada no melhor do **Logic Pro** e do **Cubase**, feita por Eliseu F. Guedes.
 
@@ -72,13 +72,13 @@ A partitura é desenhada pelo [Verovio](https://www.verovio.org) com a fonte Bra
 Baixe o `.zip` mais recente na página **Actions** (ou em **Releases**) deste repositório.
 
 ### Windows
-1. Descompacte e abra `Zeufg Studio.exe`.
+1. Descompacte e abra `Z-Studio.exe`.
 2. Se o Windows mostrar "O Windows protegeu o computador", clique em **Mais informações → Executar assim mesmo** (o app ainda não tem assinatura digital).
 3. Em **Opções → Áudio e MIDI**, escolha sua interface de áudio e ative o teclado MIDI.
 4. Em **Opções → Gerenciar plugins**, clique em **Options → Scan for new or updated VST3 plug-ins** para carregar seus plugins (Kontakt etc.).
 
 ### macOS (11 Big Sur ou mais novo, Intel ou Apple Silicon)
-1. Descompacte e arraste `Zeufg Studio.app` para a pasta **Aplicativos**.
+1. Descompacte e arraste `Z-Studio.app` para a pasta **Aplicativos**.
 2. Na primeira vez, clique com o **botão direito → Abrir** (o app ainda não é notarizado pela Apple).
 3. Permita o acesso ao **microfone** se for gravar áudio.
 4. Escaneie os plugins em **Opções → Gerenciar plugins** (AU e VST3).
@@ -90,13 +90,13 @@ Baixe o `.zip` mais recente na página **Actions** (ou em **Releases**) deste re
 Requisitos: CMake 3.22+, e **Visual Studio 2022** (Windows) ou **Xcode 13+** (macOS).
 
 ```bash
-git clone --recursive https://github.com/zeufg7/zeufg-studio.git
-cd zeufg-studio
+git clone --recursive https://github.com/zeufg7/Z-Studio.git
+cd Z-Studio
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --config Release
 ```
 
-O app fica em `build/ZeufgStudio_artefacts/Release/`.
+O app fica em `build/ZStudio_artefacts/Release/`.
 
 A cada envio para o GitHub, o **GitHub Actions** compila sozinho as versões de Windows e Mac. Para publicar uma versão, crie uma tag (ex.: `v0.1.0`).
 
