@@ -57,6 +57,7 @@ target_sources (ZStudio PRIVATE
     Source/MainComponent.cpp
     Source/ArrangeView.cpp
     Source/ScoreView.cpp
+    Source/PianoRoll.cpp
     ${SCORE_SOURCES})
 
 # Fontes do Verovio embutidas (extraídas na primeira execução)

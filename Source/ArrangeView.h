@@ -202,6 +202,9 @@ public:
     void zoomOut()                      { viewState.setZoom (viewState.pixelsPerSecond / 1.4, (float) getLanesWidth() / 2.0f); }
     void followPlayhead();
 
+    /** Chamado no duplo clique de um clipe MIDI (abre o piano roll). */
+    std::function<void (te::MidiClip*)> onOpenClip;
+
     /** Importa arquivos de áudio/MIDI numa faixa, a partir de um tempo. */
     void importFiles (te::AudioTrack&, const juce::StringArray& files, te::TimePosition at);
 

@@ -5,6 +5,7 @@
 #include "TransportBar.h"
 #include "Inspector.h"
 #include "ScoreView.h"
+#include "PianoRoll.h"
 
 //==============================================================================
 class MainComponent : public juce::Component,
@@ -34,7 +35,7 @@ public:
         cmdUndo, cmdRedo, cmdDelete,
         cmdNewInstrumentTrack, cmdNewAudioTrack, cmdDeleteTrack,
         cmdPlayStop, cmdRecord, cmdGoToStart, cmdToggleLoop, cmdToggleClick, cmdToggleSnap,
-        cmdZoomIn, cmdZoomOut, cmdToggleInspector, cmdShowArrange, cmdShowScore, cmdExportMusicXML,
+        cmdZoomIn, cmdZoomOut, cmdToggleInspector, cmdShowArrange, cmdShowScore, cmdExportMusicXML, cmdTogglePianoRoll,
         cmdAudioSettings, cmdPluginManager, cmdAbout
     };
 
@@ -78,6 +79,22 @@ private:
     Inspector inspector;
     std::unique_ptr<ArrangeView> arrangeView;
     ScoreView scoreView { engine };
+
+    struct Divider : public juce::Component
+    {
+        std::function<void (int)> onDrag;
+        int startY = 0;
+        Divider()                                                   { setMouseCursor (juce::MouseCursor::UpDownResizeCursor); }
+        void paint (juce::Graphics& g) override                     { g.fillAll (Theme::outline); }
+        void mouseDown (const juce::MouseEvent& e) override          { startY = e.getScreenY(); }
+        void mouseDrag (const juce::MouseEvent& e) override          { if (onDrag) onDrag (e.getScreenY() - startY); startY = e.getScreenY(); }
+    };
+
+    PianoRollPanel pianoRoll;
+    Divider pianoRollDivider;
+    bool showPianoRoll = false;
+    int pianoRollHeight = 380;
+    void setPianoRollVisible (bool, te::MidiClip* clip = nullptr);
     juce::TextButton tabArrange { "Arranjo" }, tabScore { "Partitura" };
     bool scoreMode = false;
     void setScoreMode (bool);

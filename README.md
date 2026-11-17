@@ -24,6 +24,17 @@ Construída em C++ com [JUCE](https://juce.com), [Tracktion Engine](https://gith
 - **Desfazer/Refazer**, salvar e abrir projetos (`.zstudio`)
 - **Exportar mixagem** em WAV
 
+## Piano roll (novo na v0.2)
+
+Abre na parte de baixo do Arranjo, como no Logic: **duplo clique** num clipe MIDI ou tecla **E** (ou **P**).
+- **Faixas selecionadas** (clipes selecionados ou todos os clipes da faixa) ou **Global** (todas as faixas, cada uma com sua cor)
+- Ferramentas **Ponteiro**, **Lápis** e **Borracha**; duplo clique cria/apaga nota
+- Mover, redimensionar (pelas duas bordas), seleção por retângulo, Shift para somar à seleção
+- Linha de **velocity** (arraste para mudar; vale para todas as notas selecionadas)
+- Grade 1/4 a 1/32 e tercinas, **Quantizar** (Q), teclado lateral que toca a nota
+- Atalhos: Delete apaga · Ctrl/Cmd+A seleciona tudo · ↑/↓ transpõe (Shift = oitava) · ←/→ move pela grade · Esc limpa a seleção
+- Notas escritas fora de um clipe criam um clipe novo de 1 compasso na faixa ativa
+
 ## Aba Partitura (novo na v0.2)
 
 A partitura é uma **interpretação** do MIDI: o MIDI continua exatamente como você tocou (humano, sem quantizar) e a limpeza vale só para a leitura. Abra com **N** (ou Ctrl/Cmd + R, ou Ctrl/Cmd + 2).
@@ -53,6 +64,7 @@ A partitura é desenhada pelo [Verovio](https://www.verovio.org) com a fonte Bra
 | Encaixar na grade | J |
 | Zoom + / − | H / G  ou  Ctrl(Cmd) + = / − |
 | Mostrar/ocultar inspetor | I |
+| Piano roll | E  ou  P  (ou duplo clique no clipe) |
 | Partitura / Arranjo | N  ou  Ctrl(Cmd) + R |
 | Exportar MusicXML | Ctrl(Cmd) + Shift + E |
 | Nova faixa de instrumento | Ctrl(Cmd) + T |

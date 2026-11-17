@@ -282,9 +282,9 @@ void ClipComponent::mouseUp (const MouseEvent& e)
 
 void ClipComponent::mouseDoubleClick (const MouseEvent&)
 {
-    if (dynamic_cast<te::MidiClip*> (clip.get()) != nullptr)
-        AlertWindow::showMessageBoxAsync (MessageBoxIconType::InfoIcon, "Piano roll",
-                                          "O editor de notas (piano roll) chega na versão 0.2."_t);
+    if (auto mc = dynamic_cast<te::MidiClip*> (clip.get()))
+        if (arrange.onOpenClip)
+            arrange.onOpenClip (mc);
 }
 
 //==============================================================================

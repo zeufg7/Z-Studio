@@ -9,6 +9,15 @@ MainComponent::MainComponent (te::Engine& e)
     addAndMakeVisible (transportBar);
     addAndMakeVisible (inspector);
     addChildComponent (scoreView);
+    addChildComponent (pianoRoll);
+    addChildComponent (pianoRollDivider);
+
+    pianoRoll.onClose = [this] { setPianoRollVisible (false); };
+    pianoRollDivider.onDrag = [this] (int dy)
+    {
+        pianoRollHeight = jlimit (160, jmax (200, getHeight() - 260), pianoRollHeight - dy);
+        resized();
+    };
 
     for (auto* b : { &tabArrange, &tabScore })
     {
@@ -58,6 +67,7 @@ MainComponent::~MainComponent()
     transportBar.setEdit (nullptr);
     inspector.setTrack (nullptr, nullptr);
     scoreView.setEdit (nullptr);
+    pianoRoll.setEdit (nullptr, nullptr);
     selectionManager.deselectAll();
     arrangeView.reset();
     edit.reset();
@@ -83,6 +93,9 @@ void MainComponent::resized()
     if (arrangeView != nullptr)
         arrangeView->setVisible (! scoreMode);
 
+    pianoRoll.setVisible (! scoreMode && showPianoRoll);
+    pianoRollDivider.setVisible (! scoreMode && showPianoRoll);
+
     if (scoreMode)
     {
         inspector.setVisible (false);
@@ -93,6 +106,13 @@ void MainComponent::resized()
     inspector.setVisible (showInspector);
     if (showInspector)
         inspector.setBounds (r.removeFromLeft (230));
+
+    if (showPianoRoll)
+    {
+        const int h = jlimit (160, jmax (200, r.getHeight() - 120), pianoRollHeight);
+        pianoRoll.setBounds (r.removeFromBottom (h));
+        pianoRollDivider.setBounds (r.removeFromBottom (5));
+    }
 
     if (arrangeView != nullptr)
         arrangeView->setBounds (r);
@@ -116,10 +136,31 @@ void MainComponent::setScoreMode (bool shouldShowScore)
     commandManager.commandStatusChanged();
 }
 
+void MainComponent::setPianoRollVisible (bool shouldShow, te::MidiClip* clip)
+{
+    showPianoRoll = shouldShow;
+
+    if (shouldShow && scoreMode)
+        setScoreMode (false);
+
+    resized();
+
+    if (shouldShow)
+    {
+        if (clip != nullptr)
+            pianoRoll.showClip (clip);
+        else
+            pianoRoll.focusOnNotes();
+    }
+
+    commandManager.commandStatusChanged();
+}
+
 void MainComponent::setEdit (std::unique_ptr<te::Edit> newEdit, const File& file)
 {
     transportBar.setEdit (nullptr);
     scoreView.setEdit (nullptr);
+    pianoRoll.setEdit (nullptr, nullptr);
     inspector.setTrack (nullptr, nullptr);
     selectionManager.deselectAll();
     arrangeView.reset();
@@ -132,7 +173,13 @@ void MainComponent::setEdit (std::unique_ptr<te::Edit> newEdit, const File& file
     prepareEdit (*edit);
 
     arrangeView = std::make_unique<ArrangeView> (*edit, selectionManager);
+    arrangeView->onOpenClip = [this] (te::MidiClip* mc)
+    {
+        selectionManager.selectOnly (mc);
+        setPianoRollVisible (true, mc);
+    };
     addAndMakeVisible (*arrangeView);
+    pianoRoll.setEdit (edit.get(), &selectionManager);
     transportBar.setEdit (edit.get());
     scoreView.setEdit (edit.get());
     transportBar.setSnapState (arrangeView->getViewState().snapToGrid);
@@ -525,7 +572,7 @@ void MainComponent::getAllCommands (Array<CommandID>& c)
                   cmdUndo, cmdRedo, cmdDelete,
                   cmdNewInstrumentTrack, cmdNewAudioTrack, cmdDeleteTrack,
                   cmdPlayStop, cmdRecord, cmdGoToStart, cmdToggleLoop, cmdToggleClick, cmdToggleSnap,
-                  cmdZoomIn, cmdZoomOut, cmdToggleInspector, cmdShowArrange, cmdShowScore, cmdExportMusicXML,
+                  cmdZoomIn, cmdZoomOut, cmdToggleInspector, cmdShowArrange, cmdShowScore, cmdExportMusicXML, cmdTogglePianoRoll,
                   cmdAudioSettings, cmdPluginManager, cmdAbout });
 }
 
@@ -581,6 +628,8 @@ void MainComponent::getCommandInfo (CommandID id, ApplicationCommandInfo& info)
         case cmdShowArrange:     info.setInfo ("Arranjo", {}, "Ver", 0);                  info.addDefaultKeypress ('1', cmd); info.setTicked (! scoreMode); break;
         case cmdShowScore:       info.setInfo ("Partitura", {}, "Ver", 0);                info.addDefaultKeypress ('n', 0); info.addDefaultKeypress ('2', cmd);
                                  info.addDefaultKeypress ('r', cmd); info.setTicked (scoreMode); break;
+        case cmdTogglePianoRoll: info.setInfo ("Piano roll", {}, "Ver", 0); info.addDefaultKeypress ('e', 0); info.addDefaultKeypress ('p', 0);
+                                 info.setTicked (showPianoRoll); break;
         case cmdExportMusicXML:  info.setInfo ("Exportar partitura (MusicXML)...", {}, "Arquivo", 0); info.addDefaultKeypress ('e', cmd | shift); break;
 
         case cmdAudioSettings: info.setInfo ("Áudio e MIDI..."_t, {}, "Opções"_t, 0);         info.addDefaultKeypress (',', cmd); break;
@@ -635,6 +684,7 @@ bool MainComponent::perform (const InvocationInfo& info)
         case cmdShowArrange:     setScoreMode (false); break;
         case cmdShowScore:       setScoreMode (! scoreMode); break;
         case cmdExportMusicXML:  scoreView.exportMusicXML(); break;
+        case cmdTogglePianoRoll: setPianoRollVisible (! showPianoRoll || scoreMode); break;
 
         case cmdAudioSettings: showAudioSettings(); break;
         case cmdPluginManager: showPluginManager(); break;
@@ -708,6 +758,7 @@ PopupMenu MainComponent::getMenuForIndex (int index, const String&)
         case 4:
             m.addCommandItem (cm, cmdShowArrange);
             m.addCommandItem (cm, cmdShowScore);
+            m.addCommandItem (cm, cmdTogglePianoRoll);
             m.addSeparator();
             m.addCommandItem (cm, cmdZoomIn);
             m.addCommandItem (cm, cmdZoomOut);
