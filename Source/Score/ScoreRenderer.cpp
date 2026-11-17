@@ -10,8 +10,23 @@ namespace score
 Renderer::Renderer (const std::string& resourcePath)
 {
     vrv::EnableLog (vrv::LOG_ERROR);
+    vrv::EnableLogToBuffer (true);
+    vrv::logBuffer.clear();
+
     toolkit = std::make_unique<vrv::Toolkit> (false);
     ready = toolkit->SetResourcePath (resourcePath);
+
+    if (! ready)
+    {
+        for (auto& line : vrv::logBuffer)
+            error += line + " ";
+
+        if (error.empty())
+            error = "falha ao carregar as fontes";
+    }
+
+    vrv::logBuffer.clear();
+    vrv::EnableLogToBuffer (false);
 }
 
 Renderer::~Renderer() = default;

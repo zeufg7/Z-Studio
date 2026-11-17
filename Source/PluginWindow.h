@@ -90,7 +90,17 @@ public:
     void recreateEditor();
     void recreateEditorAsync();
 
+    /** Janelas de plugin ficam acima da DAW enquanto o Z-Studio está em primeiro plano. */
+    static void updateAllOnTop (bool appIsActive)
+    {
+        for (auto* w : getRegistry())
+            if (w->isAlwaysOnTop() != appIsActive)
+                w->setAlwaysOnTop (appIsActive);
+    }
+
 private:
+    static juce::Array<PluginWindow*>& getRegistry()   { static juce::Array<PluginWindow*> r; return r; }
+
     void moved() override;
     void userTriedToCloseWindow() override          { plugin.windowState->closeWindowExplicitly(); }
     void closeButtonPressed() override              { userTriedToCloseWindow(); }
@@ -124,13 +134,19 @@ PluginWindow::PluginWindow (te::Plugin& plug)
     #if JUCE_LINUX
      setAlwaysOnTop (true);
      addToDesktop();
+    #else
+     // Barra de título do sistema (com o X para fechar) e sempre na frente da DAW
+     setUsingNativeTitleBar (true);
+     setAlwaysOnTop (true);
     #endif
 
+     getRegistry().addIfNotAlreadyThere (this);
      updateStoredBounds = true;
 }
 
 PluginWindow::~PluginWindow()
 {
+    getRegistry().removeFirstMatchingValue (this);
     updateStoredBounds = false;
     plugin.edit.flushPluginStateIfNeeded (plugin);
     setEditor (nullptr);
@@ -139,7 +155,8 @@ PluginWindow::~PluginWindow()
 void PluginWindow::show()
 {
     setVisible (true);
-    toFront (false);
+    setAlwaysOnTop (true);
+    toFront (true);
     setBoundsConstrained (getBounds());
 }
 

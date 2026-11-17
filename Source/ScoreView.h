@@ -121,6 +121,7 @@ private:
 
     std::unique_ptr<ScoreRenderThread> renderThread;
     std::string lastMusicXml;
+    juce::String resourceProblem;
     std::shared_ptr<juce::FileChooser> chooser;
     int lastWidth = 0;
 

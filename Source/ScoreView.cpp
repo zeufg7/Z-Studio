@@ -5,6 +5,10 @@
 
 using namespace juce;
 
+#if JUCE_WINDOWS
+extern "C" __declspec(dllimport) unsigned long __stdcall GetShortPathNameW (const wchar_t*, wchar_t*, unsigned long);
+#endif
+
 //==============================================================================
 // Opções dos controles
 namespace
@@ -245,15 +249,21 @@ public:
 
             auto shared = std::make_shared<std::unique_ptr<Drawable>> (std::move (drawable));
             auto sharedTexts = std::make_shared<std::vector<ScoreText>> (std::move (texts));
+            const String problem = renderer.isReady() ? String()
+                                 : String ("Fontes de partitura indisponiveis: ") + String (renderer.getError())
+                                     + "  [" + resourcePath + "]";
+
             MessageManager::callAsync ([sp = Component::SafePointer<ScoreView> (&view), shared, sharedTexts, xml, info, w, h,
-                                        ready = renderer.isReady()]
+                                        ready = renderer.isReady(), problem]
             {
                 if (sp == nullptr)
                     return;
 
                 sp->lastMusicXml = xml;
-                sp->status.setText (ready ? info : String ("Fontes de partitura indisponiveis"), dontSendNotification);
-                sp->page.message = info;
+                sp->status.setText (ready ? info : problem + (sp->resourceProblem.isNotEmpty() ? "  " + sp->resourceProblem : String()),
+                                    dontSendNotification);
+                sp->status.setTooltip (sp->status.getText());
+                sp->page.message = ready ? info : sp->status.getText();
                 sp->page.setDrawable (std::move (*shared), std::move (*sharedTexts), w, h);
             });
         }
@@ -649,26 +659,90 @@ ScoreView::~ScoreView()
 
 String ScoreView::getResourcePath()
 {
-    // As fontes do Verovio vão embutidas no app e são extraídas uma vez
-    auto dir = File::getSpecialLocation (File::userApplicationDataDirectory)
-                   .getChildFile ("Z-Studio").getChildFile ("verovio-data")
-                   .getChildFile (String (ZeufgData::namedResourceListSize > 0 ? ZeufgData::namedResourceList[0] : "x")
-                                  + "-" + String (JUCE_APPLICATION_VERSION_STRING));
+    // As fontes do Verovio vão embutidas no app e são extraídas uma vez.
+    // O Verovio abre arquivos com caminhos "simples": no Windows, caminhos com acentos
+    // (ex.: nome de usuário) falham, então usamos o caminho curto (8.3) ou o ProgramData.
+    const String folderName = String (ZeufgData::namedResourceListSize > 0 ? ZeufgData::namedResourceList[0] : "fontes")
+                              + "-" + String (JUCE_APPLICATION_VERSION_STRING);
 
-    if (! dir.getChildFile ("Bravura.xml").existsAsFile())
+    auto isAscii = [] (const String& s)
     {
+        for (auto c : s)
+            if ((int) c > 127)
+                return false;
+        return true;
+    };
+
+    auto usable = [] (const File& d)
+    {
+        return d.getChildFile ("Bravura.xml").existsAsFile()
+            && d.getChildFile ("Leipzig.xml").existsAsFile()
+            && d.getChildFile ("text").getChildFile ("Times.xml").existsAsFile();
+    };
+
+    auto extractTo = [&] (const File& d) -> bool
+    {
+        if (usable (d))
+            return true;
+
         int size = 0;
-        if (ZeufgData::namedResourceListSize > 0)
-            if (auto* data = ZeufgData::getNamedResource (ZeufgData::namedResourceList[0], size))
-            {
-                dir.createDirectory();
-                MemoryInputStream in (data, (size_t) size, false);
-                ZipFile zip (in);
-                [[maybe_unused]] auto r = zip.uncompressTo (dir, true);
-            }
+        if (ZeufgData::namedResourceListSize == 0)
+            return false;
+
+        auto* data = ZeufgData::getNamedResource (ZeufgData::namedResourceList[0], size);
+        if (data == nullptr || size <= 0)
+            return false;
+
+        if (! d.createDirectory())
+            return false;
+
+        MemoryInputStream in (data, (size_t) size, false);
+        ZipFile zip (in);
+        auto result = zip.uncompressTo (d, true);
+        return result.wasOk() && usable (d);
+    };
+
+    auto toVerovioPath = [&] (const File& d) -> String
+    {
+        auto path = d.getFullPathName();
+
+       #if JUCE_WINDOWS
+        if (! isAscii (path))
+        {
+            wchar_t buffer[1024] = {};
+            if (GetShortPathNameW (path.toWideCharPointer(), buffer, 1024) > 0)
+                path = String (buffer);
+        }
+       #endif
+
+        return path;
+    };
+
+    Array<File> candidates {
+        File::getSpecialLocation (File::userApplicationDataDirectory).getChildFile ("Z-Studio").getChildFile ("verovio-data").getChildFile (folderName),
+        File::getSpecialLocation (File::commonApplicationDataDirectory).getChildFile ("Z-Studio").getChildFile ("verovio-data").getChildFile (folderName),
+        File::getSpecialLocation (File::tempDirectory).getChildFile ("Z-Studio-verovio").getChildFile (folderName)
+    };
+
+    String lastProblem;
+
+    for (auto& dir : candidates)
+    {
+        if (! extractTo (dir))
+        {
+            lastProblem = "nao foi possivel extrair em " + dir.getFullPathName();
+            continue;
+        }
+
+        auto path = toVerovioPath (dir);
+        if (isAscii (path))
+            return path;
+
+        lastProblem = "caminho com acentos: " + path;
     }
 
-    return dir.getFullPathName();
+    resourceProblem = lastProblem;
+    return toVerovioPath (candidates[0]);
 }
 
 void ScoreView::setEdit (te::Edit* e)

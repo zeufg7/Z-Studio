@@ -34,7 +34,8 @@ public:
 };
 
 //==============================================================================
-class ZStudioApplication : public juce::JUCEApplication
+class ZStudioApplication : public juce::JUCEApplication,
+                           private juce::Timer
 {
 public:
     ZStudioApplication() = default;
@@ -49,12 +50,14 @@ public:
 
         engine = std::make_unique<te::Engine> ("Z-Studio", std::make_unique<ZeufgUIBehaviour>(), nullptr);
         mainWindow = std::make_unique<MainWindow> (*engine, *this);
+        startTimerHz (4);
 
         openFromCommandLine (commandLine);
     }
 
     void shutdown() override
     {
+        stopTimer();
         mainWindow = nullptr;
         engine = nullptr;
         juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
@@ -78,6 +81,13 @@ public:
     }
 
 private:
+    void timerCallback() override
+    {
+        // Plugins na frente enquanto o Z-Studio estiver ativo; quando você troca de
+        // programa, eles deixam de ficar por cima das outras janelas.
+        PluginWindow::updateAllOnTop (juce::Process::isForegroundProcess());
+    }
+
     void openFromCommandLine (const juce::String& commandLine)
     {
         auto path = commandLine.unquoted().trim();

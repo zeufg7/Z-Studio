@@ -16,6 +16,7 @@ namespace score
         ~Renderer();
 
         bool isReady() const    { return ready; }
+        const std::string& getError() const    { return error; }
 
         /** Retorna o SVG da partitura com a largura dada (px) e escala (%). */
         std::string render (const std::string& musicXml, int widthPx, int scalePercent);
@@ -23,5 +24,6 @@ namespace score
     private:
         std::unique_ptr<vrv::Toolkit> toolkit;
         bool ready = false;
+        std::string error;
     };
 }
