@@ -8,6 +8,20 @@ MainComponent::MainComponent (te::Engine& e)
 {
     addAndMakeVisible (transportBar);
     addAndMakeVisible (inspector);
+    addChildComponent (scoreView);
+
+    for (auto* b : { &tabArrange, &tabScore })
+    {
+        b->setClickingTogglesState (false);
+        b->setColour (TextButton::buttonOnColourId, Theme::accent);
+        addAndMakeVisible (b);
+    }
+
+    tabArrange.onClick = [this] { setScoreMode (false); };
+    tabScore.onClick   = [this] { setScoreMode (true); };
+    tabArrange.setToggleState (true, dontSendNotification);
+    ZS::disableFocus (tabArrange);
+    ZS::disableFocus (tabScore);
 
     transportBar.onSnapToggled = [this]
     {
@@ -43,6 +57,7 @@ MainComponent::~MainComponent()
 
     transportBar.setEdit (nullptr);
     inspector.setTrack (nullptr, nullptr);
+    scoreView.setEdit (nullptr);
     selectionManager.deselectAll();
     arrangeView.reset();
     edit.reset();
@@ -58,6 +73,22 @@ void MainComponent::resized()
 {
     auto r = getLocalBounds();
     transportBar.setBounds (r.removeFromTop (58));
+
+    auto tabs = r.removeFromTop (32).reduced (8, 4);
+    tabArrange.setBounds (tabs.removeFromLeft (110));
+    tabs.removeFromLeft (4);
+    tabScore.setBounds (tabs.removeFromLeft (110));
+
+    scoreView.setVisible (scoreMode);
+    if (arrangeView != nullptr)
+        arrangeView->setVisible (! scoreMode);
+
+    if (scoreMode)
+    {
+        inspector.setVisible (false);
+        scoreView.setBounds (r);
+        return;
+    }
 
     inspector.setVisible (showInspector);
     if (showInspector)
@@ -76,9 +107,19 @@ void MainComponent::prepareEdit (te::Edit& ed)
     ed.restartPlayback();
 }
 
+void MainComponent::setScoreMode (bool shouldShowScore)
+{
+    scoreMode = shouldShowScore;
+    tabArrange.setToggleState (! scoreMode, dontSendNotification);
+    tabScore.setToggleState (scoreMode, dontSendNotification);
+    resized();
+    commandManager.commandStatusChanged();
+}
+
 void MainComponent::setEdit (std::unique_ptr<te::Edit> newEdit, const File& file)
 {
     transportBar.setEdit (nullptr);
+    scoreView.setEdit (nullptr);
     inspector.setTrack (nullptr, nullptr);
     selectionManager.deselectAll();
     arrangeView.reset();
@@ -93,6 +134,7 @@ void MainComponent::setEdit (std::unique_ptr<te::Edit> newEdit, const File& file
     arrangeView = std::make_unique<ArrangeView> (*edit, selectionManager);
     addAndMakeVisible (*arrangeView);
     transportBar.setEdit (edit.get());
+    scoreView.setEdit (edit.get());
     transportBar.setSnapState (arrangeView->getViewState().snapToGrid);
 
     if (auto first = ZS::getUserTracks (*edit).getFirst())
@@ -377,6 +419,7 @@ void MainComponent::selectionChanged()
 {
     auto* track = getSelectedTrack();
     inspector.setTrack (edit.get(), track);
+    scoreView.setSelectedTrack (track);
 
     // Estilo Logic: o teclado MIDI toca a faixa de instrumento selecionada
     if (track != nullptr && ZS::isInstrumentTrack (*track))
@@ -482,7 +525,7 @@ void MainComponent::getAllCommands (Array<CommandID>& c)
                   cmdUndo, cmdRedo, cmdDelete,
                   cmdNewInstrumentTrack, cmdNewAudioTrack, cmdDeleteTrack,
                   cmdPlayStop, cmdRecord, cmdGoToStart, cmdToggleLoop, cmdToggleClick, cmdToggleSnap,
-                  cmdZoomIn, cmdZoomOut, cmdToggleInspector,
+                  cmdZoomIn, cmdZoomOut, cmdToggleInspector, cmdShowArrange, cmdShowScore, cmdExportMusicXML,
                   cmdAudioSettings, cmdPluginManager, cmdAbout });
 }
 
@@ -535,6 +578,11 @@ void MainComponent::getCommandInfo (CommandID id, ApplicationCommandInfo& info)
         case cmdZoomOut:         info.setInfo ("Afastar (zoom -)", {}, "Ver", 0);         info.addDefaultKeypress ('g', 0); info.addDefaultKeypress ('-', cmd); break;
         case cmdToggleInspector: info.setInfo ("Mostrar inspetor", {}, "Ver", 0);         info.addDefaultKeypress ('i', 0); info.setTicked (showInspector); break;
 
+        case cmdShowArrange:     info.setInfo ("Arranjo", {}, "Ver", 0);                  info.addDefaultKeypress ('1', cmd); info.setTicked (! scoreMode); break;
+        case cmdShowScore:       info.setInfo ("Partitura", {}, "Ver", 0);                info.addDefaultKeypress ('n', 0); info.addDefaultKeypress ('2', cmd);
+                                 info.addDefaultKeypress ('r', cmd); info.setTicked (scoreMode); break;
+        case cmdExportMusicXML:  info.setInfo ("Exportar partitura (MusicXML)...", {}, "Arquivo", 0); info.addDefaultKeypress ('e', cmd | shift); break;
+
         case cmdAudioSettings: info.setInfo ("Áudio e MIDI..."_t, {}, "Opções"_t, 0);         info.addDefaultKeypress (',', cmd); break;
         case cmdPluginManager: info.setInfo ("Gerenciar plugins...", {}, "Opções"_t, 0);    break;
         case cmdAbout:         info.setInfo ("Sobre o Zeufg Studio", {}, "Ajuda", 0);     break;
@@ -584,6 +632,10 @@ bool MainComponent::perform (const InvocationInfo& info)
         case cmdZoomOut:         if (arrangeView) arrangeView->zoomOut(); break;
         case cmdToggleInspector: showInspector = ! showInspector; resized(); break;
 
+        case cmdShowArrange:     setScoreMode (false); break;
+        case cmdShowScore:       setScoreMode (! scoreMode); break;
+        case cmdExportMusicXML:  scoreView.exportMusicXML(); break;
+
         case cmdAudioSettings: showAudioSettings(); break;
         case cmdPluginManager: showPluginManager(); break;
         case cmdAbout:
@@ -621,6 +673,7 @@ PopupMenu MainComponent::getMenuForIndex (int index, const String&)
             m.addSeparator();
             m.addCommandItem (cm, cmdImportAudio);
             m.addCommandItem (cm, cmdExport);
+            m.addCommandItem (cm, cmdExportMusicXML);
            #if ! JUCE_MAC
             m.addSeparator();
             {
@@ -653,6 +706,9 @@ PopupMenu MainComponent::getMenuForIndex (int index, const String&)
             m.addCommandItem (cm, cmdToggleSnap);
             break;
         case 4:
+            m.addCommandItem (cm, cmdShowArrange);
+            m.addCommandItem (cm, cmdShowScore);
+            m.addSeparator();
             m.addCommandItem (cm, cmdZoomIn);
             m.addCommandItem (cm, cmdZoomOut);
             m.addSeparator();

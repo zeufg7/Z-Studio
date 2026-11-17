@@ -4,6 +4,7 @@
 #include "ArrangeView.h"
 #include "TransportBar.h"
 #include "Inspector.h"
+#include "ScoreView.h"
 
 //==============================================================================
 class MainComponent : public juce::Component,
@@ -33,7 +34,7 @@ public:
         cmdUndo, cmdRedo, cmdDelete,
         cmdNewInstrumentTrack, cmdNewAudioTrack, cmdDeleteTrack,
         cmdPlayStop, cmdRecord, cmdGoToStart, cmdToggleLoop, cmdToggleClick, cmdToggleSnap,
-        cmdZoomIn, cmdZoomOut, cmdToggleInspector,
+        cmdZoomIn, cmdZoomOut, cmdToggleInspector, cmdShowArrange, cmdShowScore, cmdExportMusicXML,
         cmdAudioSettings, cmdPluginManager, cmdAbout
     };
 
@@ -76,6 +77,10 @@ private:
     TransportBar transportBar;
     Inspector inspector;
     std::unique_ptr<ArrangeView> arrangeView;
+    ScoreView scoreView { engine };
+    juce::TextButton tabArrange { "Arranjo" }, tabScore { "Partitura" };
+    bool scoreMode = false;
+    void setScoreMode (bool);
     bool showInspector = true;
     juce::String lastTitle;
     juce::TooltipWindow tooltips { this, 600 };

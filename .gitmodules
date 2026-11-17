@@ -1,3 +1,6 @@
 [submodule "libs/tracktion_engine"]
 	path = libs/tracktion_engine
 	url = https://github.com/Tracktion/tracktion_engine.git
+[submodule "libs/verovio"]
+	path = libs/verovio
+	url = https://github.com/rism-digital/verovio.git

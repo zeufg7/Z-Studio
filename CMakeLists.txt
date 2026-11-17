@@ -27,6 +27,17 @@ endif()
 add_subdirectory ("${TE_DIR}/modules/juce" juce_build)
 add_subdirectory ("${TE_DIR}/modules" tracktion_build)
 
+# Motor de desenho de partituras (Verovio)
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libs/verovio/src")
+    message (FATAL_ERROR "Submódulo do Verovio ausente. Rode: git submodule update --init --recursive")
+endif()
+include (cmake/Verovio.cmake)
+
+set (SCORE_SOURCES
+    Source/Score/ScoreEngine.cpp
+    Source/Score/MusicXml.cpp
+    Source/Score/ScoreRenderer.cpp)
+
 juce_add_gui_app (ZeufgStudio
     PRODUCT_NAME "Zeufg Studio"
     COMPANY_NAME "Eliseu F. Guedes"
@@ -44,7 +55,16 @@ juce_generate_juce_header (ZeufgStudio)
 target_sources (ZeufgStudio PRIVATE
     Source/Main.cpp
     Source/MainComponent.cpp
-    Source/ArrangeView.cpp)
+    Source/ArrangeView.cpp
+    Source/ScoreView.cpp
+    ${SCORE_SOURCES})
+
+# Fontes do Verovio embutidas (extraídas na primeira execução)
+juce_add_binary_data (ZeufgStudioData
+    HEADER_NAME ZeufgBinaryData.h
+    NAMESPACE ZeufgData
+    SOURCES "${VRV_DATA_ZIP}")
+add_dependencies (ZeufgStudioData verovio_data)
 
 target_compile_definitions (ZeufgStudio PRIVATE
     JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:ZeufgStudio,JUCE_PRODUCT_NAME>"
@@ -68,6 +88,8 @@ target_link_libraries (ZeufgStudio PRIVATE
     juce::juce_audio_devices
     juce::juce_audio_processors
     juce::juce_audio_utils
+    verovio_static
+    ZeufgStudioData
     juce::juce_recommended_config_flags)
 
 set_target_properties (ZeufgStudio PROPERTIES
@@ -84,4 +106,17 @@ endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries (ZeufgStudio PRIVATE "-latomic")
+endif()
+
+#==============================================================================
+# Ferramenta de teste do motor de partitura (opcional)
+option (ZS_BUILD_TOOLS "Compila ferramentas de teste" OFF)
+
+if (ZS_BUILD_TOOLS)
+    juce_add_console_app (score_cli PRODUCT_NAME "score_cli")
+    target_sources (score_cli PRIVATE tools/score_cli.cpp ${SCORE_SOURCES})
+    target_compile_definitions (score_cli PRIVATE JUCE_USE_CURL=0 JUCE_WEB_BROWSER=0)
+    target_link_libraries (score_cli PRIVATE juce::juce_gui_basics juce::juce_audio_basics verovio_static
+                           juce::juce_recommended_config_flags)
+    juce_generate_juce_header (score_cli)
 endif()
